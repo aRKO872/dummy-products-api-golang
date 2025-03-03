@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/product-api-microservice/handlers"
 )
 
@@ -15,16 +16,27 @@ func main() {
 
 	l := log.New(os.Stdout, "go-server: ", log.LstdFlags)
 
-	hh := handlers.NewHello(l)
-	hh2 := handlers.NewHeartbeat(l)
-	ph := handlers.NewProducts(l)
+	hb := handlers.NewHeartbeat(l)
+	pr := handlers.NewProducts(l)
 
-	sm := http.NewServeMux()
+	sm := mux.NewRouter()
 
-	sm.Handle("/hello", hh)
-	sm.Handle("/heartbeat", hh2)
-	sm.Handle("/products", ph)
-	sm.Handle("/products/{id}", ph)
+	heartbeatRouter := sm.Methods(http.MethodGet).Subrouter()
+	heartbeatRouter.HandleFunc("/heartbeat", hb.ServeHTTP)
+
+	// sm.Handle("/products", ph)
+	// sm.Handle("/products/{id}", ph)
+
+	productGet := sm.Methods(http.MethodGet).Subrouter()
+	productGet.HandleFunc("/products", pr.GetProducts)
+
+	productPost := sm.Methods(http.MethodPost).Subrouter()
+	productPost.HandleFunc("/products", pr.AddProduct)
+	productPost.Use(pr.MiddlewareEncodingProduct)
+
+	productPut := sm.Methods(http.MethodPut).Subrouter()
+	productPut.HandleFunc("/products/{id:[0-9]+}", pr.UpdateProduct)
+	productPut.Use(pr.MiddlewareEncodingProduct)
 
 	s := &http.Server{
 		Handler: sm,
@@ -46,7 +58,6 @@ func main() {
 	sigChan := make(chan os.Signal, 2)
 
 	signal.Notify(sigChan, os.Interrupt)
-	signal.Notify(sigChan, os.Kill)
 
 	sig := <-sigChan
 

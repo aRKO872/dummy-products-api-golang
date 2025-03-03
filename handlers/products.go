@@ -2,11 +2,15 @@ package handlers
 
 import (
 	// "encoding/json"
+	"context"
 	"log"
 	"net/http"
-	"regexp"
 	"strconv"
 
+	// "regexp"
+	// "strconv"
+
+	"github.com/gorilla/mux"
 	"github.com/product-api-microservice/data"
 )
 
@@ -18,50 +22,28 @@ func NewProducts (l *log.Logger) *Products {
 	return &Products{l}
 }
 
-func (p *Products) ServeHTTP (w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		p.GetProducts(w, r)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		p.AddProduct(w, r)
-		return
-	}
-
-	if r.Method == http.MethodPut {
-		path := r.URL.Path
-
-		reg := regexp.MustCompile(`/([0-9]+)`)
-		g := reg.FindAllStringSubmatch(path, -1)
-
-		prodId, err := strconv.Atoi(g[0][1])
-
-		if err != nil {
-			http.Error(w, "error getting path param", http.StatusInternalServerError)
-			return
-		}
-
-		p.UpdateProduct(w, r, prodId)
-		return
-	}
-
-	w.WriteHeader(http.StatusMethodNotAllowed)
-}
-
 func (p *Products) UpdateProduct (
 	w http.ResponseWriter, 
 	r *http.Request,
-	prodId int,
 ) {
-	updateReq := new(data.Product)
+	vars := mux.Vars(r)
 
-	defer r.Body.Close()
-
-	if err := updateReq.FromBody(r.Body); err != nil {
-		http.Error(w, "error reading from body and unmarshalling request", http.StatusInternalServerError)
+	prodId, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "error decoding path parameter", http.StatusInternalServerError)
 		return
 	}
+
+	// updateReq := new(data.Product)
+
+	// defer r.Body.Close()
+
+	// if err := updateReq.FromBody(r.Body); err != nil {
+	// 	http.Error(w, "error reading from body and unmarshalling request", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	updateReq := r.Context().Value(data.ProductKey).(data.Product)
 
 	prodList := data.GetProducts()
 
@@ -79,7 +61,7 @@ func (p *Products) UpdateProduct (
 		return
 	}
 
-	prodList[resProdInd] = *updateReq
+	prodList[resProdInd] = updateReq
 	data.SetProducts(prodList)
 
 	if err := prodList.ToJSON(w); err != nil {
@@ -98,21 +80,23 @@ func (p *Products) GetProducts (w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Products) AddProduct (w http.ResponseWriter, r *http.Request) {
-	inputProduct := new(data.Product)
+	// inputProduct := new(data.Product)
 	
-	defer r.Body.Close()
+	// defer r.Body.Close()
 
-	if err := inputProduct.FromBody(r.Body); err != nil {
-		http.Error(w, "error unmarshalling product", http.StatusInternalServerError)
-		return
-	}
+	// if err := inputProduct.FromBody(r.Body); err != nil {
+	// 	http.Error(w, "error unmarshalling product", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	inputProduct := r.Context().Value(data.ProductKey).(data.Product)
 
 	pList := data.GetProducts()
 
 	ind := len(pList)+1
 	inputProduct.ID = ind
 
-	pList = append(pList, *inputProduct)
+	pList = append(pList, inputProduct)
 
 	data.SetProducts(pList)
 
@@ -121,3 +105,21 @@ func (p *Products) AddProduct (w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (p *Products) MiddlewareEncodingProduct(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		inputProduct := new(data.Product)
+	
+		defer r.Body.Close()
+
+		if err := inputProduct.FromBody(r.Body); err != nil {
+			http.Error(w, "error unmarshalling product", http.StatusInternalServerError)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), data.ProductKey, *inputProduct)
+		updatedReq := r.WithContext(ctx)
+
+		next.ServeHTTP(w, updatedReq)
+	})
+} 
