@@ -3,6 +3,7 @@ package handlers
 import (
 	// "encoding/json"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -114,6 +115,11 @@ func (p *Products) MiddlewareEncodingProduct(next http.Handler) http.Handler {
 
 		if err := inputProduct.FromBody(r.Body); err != nil {
 			http.Error(w, "error unmarshalling product", http.StatusInternalServerError)
+			return
+		}
+
+		if err := inputProduct.Validate(); err != nil {
+			http.Error(w, fmt.Sprintf("error during validation of request : %s", err.Error()), http.StatusInternalServerError)
 			return
 		}
 
