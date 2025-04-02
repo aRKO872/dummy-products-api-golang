@@ -19,6 +19,8 @@ func (p *Products) UpdateProduct (
 ) {
 	updateReq := r.Context().Value(data.ProductKey).(data.Product)
 
+	w.Header().Set("Content-Type", "application/json")
+
 	prodList, err := data.UpdateProduct(updateReq)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

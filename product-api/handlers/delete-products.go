@@ -18,6 +18,9 @@ import (
 // DeleteProduct 
 func (*Products) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	delIdStr := mux.Vars(r)["id"]
+
+	w.Header().Set("Content-Type", "application/json")
+
 	delId, convErr := strconv.Atoi(delIdStr)
 
 	if convErr != nil {
