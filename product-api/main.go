@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
+
+	gohandler "github.com/gorilla/handlers"
 	"github.com/product-api-microservice/handlers"
 )
 
@@ -48,8 +50,15 @@ func main() {
 	productGet.Handle("/docs", sh)
 	productGet.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
+	// CORS
+	// We can add multiple referrers which can call this. Just adding one for the time being
+	ch := gohandler.CORS(gohandler.AllowedOrigins([]string{"http://localhost:3000"}))
+
+	// To allow everyone to access : 
+	// ch := gohandler.CORS(gohandler.AllowedOrigins([]string{"*"}))
+
 	s := &http.Server{
-		Handler: sm,
+		Handler: ch(sm),			// CORS handler wrapping the router
 		Addr: ":8000",
 		IdleTimeout: 120 * time.Second,
 		ReadTimeout: 1 * time.Second,
