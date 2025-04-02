@@ -15,6 +15,8 @@ import (
 func (p *Products) GetProducts (w http.ResponseWriter, r *http.Request) {
 	pList := data.GetProducts()
 
+	w.Header().Set("Content-Type", "application/json")
+
 	if err := pList.ToJSON(w); err != nil {
 		http.Error(w, "error marshalling product list", http.StatusInternalServerError)
 		return

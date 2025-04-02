@@ -19,6 +19,8 @@ import (
 func (p *Products) AddProduct (w http.ResponseWriter, r *http.Request) {
 	inputProduct := r.Context().Value(data.ProductKey).(data.Product)
 
+	w.Header().Set("Content-Type", "application/json")
+
 	pList := data.AddProduct(inputProduct)
 
 	if err := pList.ToJSON(w); err != nil {
