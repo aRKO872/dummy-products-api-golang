@@ -2,22 +2,38 @@ package data
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"regexp"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 )
 
+// Product defines the structure of an API product
+// swagger:model Product
 type Product struct {
+	// the id of the product
+	// min: 1
+	// required: true
 	ID          int     `json:"id"`
+
+	// name of the product
+	// required: true
 	Name        string  `json:"name" validate:"required"`
+
+	// description of product
 	Description string  `json:"description"`
+
+	// Price of Product
+	// min: 5
+	// required: true
 	Price       float32 `json:"price" validate:"required,gt=5"`
+
+	// SKU of Product 
+	// pattern: ^[a-z]{3}[0-9]{3}$
+	// example: abc123
+	// required: true
 	SKU         string  `json:"sku" validate:"required,sku"`
-	CreatedOn   string  `json:"-"`
-	UpdatedOn   string  `json:"-"`
-	DeletedOn   string  `json:"deletedOn,omitempty"`
 }
 
 type Products []Product
@@ -50,8 +66,49 @@ func GetProducts() Products {
 	return productList
 }
 
-func SetProducts(prods Products) {
-	productList = prods
+func AddProduct(prod Product) Products {
+	ind := len(productList)+1
+	prod.ID = ind
+	productList = append(productList, prod)
+
+	return productList
+}
+
+func UpdateProduct(prod Product) (Products, error) {
+	resProdInd := -1
+
+	for prodInd, p := range productList {
+		if p.ID == prod.ID {
+			resProdInd = prodInd
+			break
+		}
+	}
+
+	if resProdInd == -1 {
+		return Products{}, errors.New("product not found!")
+	}
+
+	productList[resProdInd] = prod
+
+	return productList, nil
+}
+
+func DeleteProduct(prodId int) (error) {
+	foundFlag := 0
+
+	for ind := 0; ind < len(productList); ind += 1 {
+		if productList[ind].ID == prodId {
+			foundFlag = 1
+			productList = append(productList[:ind], productList[ind+1:]...)
+			ind -= 1
+		}
+	}
+
+	if foundFlag == 0 {
+		return errors.New("product not found")
+	}
+
+	return nil
 }
 
 var productList = []Product{
@@ -61,8 +118,6 @@ var productList = []Product{
 		Description: "Frothy milky coffee",
 		Price:       29.99,
 		SKU:         "anc234",
-		CreatedOn:   time.Now().UTC().String(),
-		UpdatedOn:   time.Now().UTC().String(),
 	},
 	{
 		ID:          2,
@@ -70,7 +125,5 @@ var productList = []Product{
 		Description: "Strong coffee without milk",
 		Price:       29.99,
 		SKU:         "ack234",
-		CreatedOn:   time.Now().UTC().String(),
-		UpdatedOn:   time.Now().UTC().String(),
 	},
 }

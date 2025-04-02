@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 	"github.com/product-api-microservice/handlers"
 )
@@ -21,22 +22,31 @@ func main() {
 
 	sm := mux.NewRouter()
 
-	heartbeatRouter := sm.Methods(http.MethodGet).Subrouter()
-	heartbeatRouter.HandleFunc("/heartbeat", hb.ServeHTTP)
-
 	// sm.Handle("/products", ph)
 	// sm.Handle("/products/{id}", ph)
 
 	productGet := sm.Methods(http.MethodGet).Subrouter()
 	productGet.HandleFunc("/products", pr.GetProducts)
+	productGet.HandleFunc("/heartbeat", hb.ServeHTTP)
 
 	productPost := sm.Methods(http.MethodPost).Subrouter()
 	productPost.HandleFunc("/products", pr.AddProduct)
 	productPost.Use(pr.MiddlewareEncodingProduct)
 
 	productPut := sm.Methods(http.MethodPut).Subrouter()
-	productPut.HandleFunc("/products/{id:[0-9]+}", pr.UpdateProduct)
+	productPut.HandleFunc("/products", pr.UpdateProduct)
 	productPut.Use(pr.MiddlewareEncodingProduct)
+
+	productDelete := sm.Methods(http.MethodDelete).Subrouter()
+	productDelete.HandleFunc("/products/{id:[0-9]+}", pr.DeleteProduct)
+
+	ops := middleware.RedocOpts{
+		SpecURL: "/swagger.yaml",
+	}
+
+	sh := middleware.Redoc(ops, nil)
+	productGet.Handle("/docs", sh)
+	productGet.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	s := &http.Server{
 		Handler: sm,

@@ -1,0 +1,151 @@
+basePath: /
+consumes:
+    - application/json
+definitions:
+    GenericError:
+        properties:
+            message:
+                type: string
+                x-go-name: Message
+        type: object
+        x-go-package: github.com/product-api-microservice/handlers
+    Product:
+        description: Product defines the structure of an API product
+        properties:
+            description:
+                description: description of product
+                type: string
+                x-go-name: Description
+            id:
+                description: the id of the product
+                format: int64
+                minimum: 1
+                type: integer
+                x-go-name: ID
+            name:
+                description: name of the product
+                type: string
+                x-go-name: Name
+            price:
+                description: Price of Product
+                format: float
+                minimum: 5
+                type: number
+                x-go-name: Price
+            sku:
+                description: 'SKU of Product '
+                example: abc123
+                pattern: ^[a-z]{3}[0-9]{3}$
+                type: string
+                x-go-name: SKU
+        required:
+            - id
+            - name
+            - price
+            - sku
+        type: object
+        x-go-package: github.com/product-api-microservice/data
+    ValidationError:
+        properties:
+            messages:
+                items:
+                    type: string
+                type: array
+                x-go-name: Messages
+        type: object
+        x-go-package: github.com/product-api-microservice/handlers
+info:
+    description: Documentation for Product API
+    title: of Product API
+    version: 1.0.0
+paths:
+    /product/{id}:
+        delete:
+            description: Delete Product for given ID
+            operationId: deleteProduct
+            parameters:
+                - description: The id of product to delete from DB
+                  format: int64
+                  in: path
+                  name: id
+                  required: true
+                  type: integer
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/noContent'
+                "404":
+                    $ref: '#/responses/errorResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - products
+    /products:
+        get:
+            description: Returns a list of Products
+            operationId: listProducts
+            responses:
+                "200":
+                    $ref: '#/responses/productsResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - products
+        post:
+            description: Create new products and add to list of products
+            operationId: createProducts
+            parameters:
+                - in: body
+                  name: Body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/Product'
+            responses:
+                "200":
+                    $ref: '#/responses/productsResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - products
+        put:
+            description: Update Product from the list and returns an updated list of products
+            operationId: updateProducts
+            parameters:
+                - in: body
+                  name: Body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/Product'
+            responses:
+                "200":
+                    $ref: '#/responses/productsResponse'
+                "400":
+                    $ref: '#/responses/validationError'
+                "404":
+                    $ref: '#/responses/errorResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - products
+produces:
+    - application/json
+responses:
+    errorResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/GenericError'
+    noContent:
+        description: ""
+    productsResponse:
+        description: A list of Products
+        schema:
+            items:
+                $ref: '#/definitions/Product'
+            type: array
+    validationError:
+        description: ""
+        schema:
+            $ref: '#/definitions/ValidationError'
+schemes:
+    - http
+swagger: "2.0"
