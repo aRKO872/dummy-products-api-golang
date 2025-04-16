@@ -1,7 +1,7 @@
 // Package Classification of Product API
 //
-// Documentation for Product API
-// 
+// # Documentation for Product API
+//
 // Schemes: http
 // BasePath: /
 // Version: 1.0.0
@@ -24,15 +24,20 @@ import (
 	//	"regexp"
 	//	"strconv"
 
+	"github.com/aRKO872/currency-grpc-service/protos/currency"
 	"github.com/product-api-microservice/data"
 )
 
 type Products struct {
 	l *log.Logger
+	cc currency.CurrencyClient
 }
 
-func NewProducts (l *log.Logger) *Products {
-	return &Products{l}
+func NewProducts (l *log.Logger, cc *currency.CurrencyClient) *Products {
+	return &Products{
+		l: l,
+		cc: *cc,
+	}
 }
 
 func (p *Products) MiddlewareEncodingProduct(next http.Handler) http.Handler {
