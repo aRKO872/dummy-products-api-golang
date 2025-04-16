@@ -29,6 +29,7 @@ func main() {
 
 	productGet := sm.Methods(http.MethodGet).Subrouter()
 	productGet.HandleFunc("/products", pr.GetProducts)
+	productGet.HandleFunc("/product/{id}", pr.GetProductsSingle)
 	productGet.HandleFunc("/heartbeat", hb.ServeHTTP)
 
 	productPost := sm.Methods(http.MethodPost).Subrouter()
