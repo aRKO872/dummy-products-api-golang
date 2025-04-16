@@ -8,8 +8,11 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/aRKO872/currency-grpc-service/protos/currency"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	gohandler "github.com/gorilla/handlers"
 	"github.com/product-api-microservice/handlers"
@@ -20,9 +23,18 @@ func main() {
 	l := log.New(os.Stdout, "go-server: ", log.LstdFlags)
 
 	hb := handlers.NewHeartbeat(l)
-	pr := handlers.NewProducts(l)
 
 	sm := mux.NewRouter()
+
+	gs, err := grpc.NewClient("localhost:8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		l.Fatal("err occured doing microservice call", err)
+		l.Fatal(err)
+	}
+
+	cc := currency.NewCurrencyClient(gs)
+
+	pr := handlers.NewProducts(l, &cc)
 
 	// sm.Handle("/products", ph)
 	// sm.Handle("/products/{id}", ph)

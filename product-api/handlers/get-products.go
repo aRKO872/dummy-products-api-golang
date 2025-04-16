@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
+	"github.com/aRKO872/currency-grpc-service/protos/currency"
 	"github.com/gorilla/mux"
 	"github.com/product-api-microservice/data"
 )
@@ -50,6 +52,20 @@ func (p *Products) GetProductsSingle (w http.ResponseWriter, r *http.Request) {
 	}
 
 	finalProd := pList[prodInd]
+
+	rr := &currency.RateRequest{
+		Base: currency.Currencies(currency.Currencies_value["INR"]),
+		Destination: currency.Currencies(currency.Currencies_value["USD"]),
+	}
+
+	resp, err := p.cc.GetRate(context.Background(), rr)
+
+	if err != nil {
+		http.Error(w, "error getting microservice response", http.StatusInternalServerError)
+		return
+	}
+
+	finalProd.Price = float32(resp.Rate) * finalProd.Price
 
 	w.Header().Set("Content-Type", "application/json")
 
