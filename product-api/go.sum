@@ -1,5 +1,5 @@
-github.com/aRKO872/currency-grpc-service v0.0.0-20250416205021-51d2a3e4e4e4 h1:LtiuRnhCBa/jPzYcbfdSK4pT82VARo9SlSEzHCGUlvY=
-github.com/aRKO872/currency-grpc-service v0.0.0-20250416205021-51d2a3e4e4e4/go.mod h1:jEpdnCbAmRcBP3ZeW2HCebQunjA67VJJJBniaYhdnFw=
+github.com/aRKO872/currency-grpc-service v0.0.0-20250417205331-b960fde0839f h1:cgJC6QDaxa4BXK81eEp+aESL50SS04Nt2a2wEIT2Ygo=
+github.com/aRKO872/currency-grpc-service v0.0.0-20250417205331-b960fde0839f/go.mod h1:jEpdnCbAmRcBP3ZeW2HCebQunjA67VJJJBniaYhdnFw=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
