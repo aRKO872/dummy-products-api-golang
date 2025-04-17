@@ -3,7 +3,7 @@ module github.com/product-api-microservice
 go 1.24.1
 
 require (
-	github.com/aRKO872/currency-grpc-service v0.0.0-20250416205021-51d2a3e4e4e4
+	github.com/aRKO872/currency-grpc-service v0.0.0-20250417205331-b960fde0839f
 	github.com/go-openapi/runtime v0.28.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/gorilla/handlers v1.5.2

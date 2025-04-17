@@ -23,6 +23,17 @@ func (p *Products) GetProducts (w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	rate ,err := p.GetRate()
+
+	if err != nil {
+		http.Error(w, "error getting microservice response", http.StatusInternalServerError)
+		return
+	}
+
+	for ind, _ := range pList {
+		pList[ind].Price = pList[ind].Price * rate
+	}
+
 	if err := pList.ToJSON(w); err != nil {
 		http.Error(w, "error marshalling product list", http.StatusInternalServerError)
 		return
@@ -53,19 +64,14 @@ func (p *Products) GetProductsSingle (w http.ResponseWriter, r *http.Request) {
 
 	finalProd := pList[prodInd]
 
-	rr := &currency.RateRequest{
-		Base: currency.Currencies(currency.Currencies_value["INR"]),
-		Destination: currency.Currencies(currency.Currencies_value["USD"]),
-	}
-
-	resp, err := p.cc.GetRate(context.Background(), rr)
+	rate ,err := p.GetRate()
 
 	if err != nil {
 		http.Error(w, "error getting microservice response", http.StatusInternalServerError)
 		return
 	}
 
-	finalProd.Price = float32(resp.Rate) * finalProd.Price
+	finalProd.Price = rate * finalProd.Price
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -75,4 +81,14 @@ func (p *Products) GetProductsSingle (w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error marshalling product", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (p *Products) GetRate () (float32, error)  {
+	rr := &currency.RateRequest{
+		Base: currency.Currencies(currency.Currencies_value["INR"]),
+		Destination: currency.Currencies(currency.Currencies_value["USD"]),
+	}
+
+	resp, err := p.cc.GetRate(context.Background(), rr)
+	return float32(resp.Rate), err
 }
